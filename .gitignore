@@ -1,0 +1,4 @@
+# Temporary publish packages created for manual deployment
+publish-netlify-*/
+verify-netlify-*/
+*.zip

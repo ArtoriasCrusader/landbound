@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Landbound — Endless Terrain Puzzle</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">ENDLESS TERRAIN PUZZLE</p>
+          <h1>Landbound</h1>
+        </div>
+        <div class="topbar-actions">
+          <div class="stat-pill"><span>Pieces</span><strong id="pieces-left">10</strong></div>
+          <div class="stat-pill"><span>Score</span><strong id="score">0</strong></div>
+          <button class="ghost-button" id="reset-button" type="button">Restart</button>
+        </div>
+      </header>
+
+      <section class="game-layout">
+        <section class="board-panel" aria-label="Infinite game board">
+          <div class="board-toolbar">
+            <div>
+              <span class="live-dot"></span>
+              <span>Open world</span>
+              <span class="toolbar-muted" id="world-position">Origin 0, 0</span>
+            </div>
+            <div class="toolbar-hint">Click to place · Drag to pan · Wheel to zoom</div>
+          </div>
+          <div class="canvas-wrap" id="canvas-wrap">
+            <canvas id="game-canvas"></canvas>
+            <div class="game-over" id="game-over" hidden>
+              <div class="game-over-card">
+                <span class="eyebrow">RUN COMPLETE</span>
+                <h2>Your world has run out of pieces.</h2>
+                <p id="final-score">Final score: 0</p>
+                <button class="primary-button" id="restart-overlay" type="button">Start a new world</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="sidebar">
+          <section class="card current-piece-card">
+            <div class="card-heading">
+              <div>
+                <span class="eyebrow">IN HAND</span>
+                <h2 id="piece-name">Meadow Link</h2>
+              </div>
+              <span class="piece-count" id="placed-count">0 placed</span>
+            </div>
+            <div class="piece-preview" id="piece-preview" aria-label="Current piece preview"></div>
+            <div class="piece-controls">
+              <button class="rotate-button" id="rotate-button" type="button">↻ Rotate <span>R</span></button>
+            </div>
+            <div class="quest-box" id="hand-quest" hidden></div>
+          </section>
+
+          <section class="card">
+            <div class="card-heading">
+              <div>
+                <span class="eyebrow">QUEST TRAIL</span>
+                <h2>Anchors in the wild</h2>
+              </div>
+              <span class="quest-total" id="quest-total">0</span>
+            </div>
+            <div class="quest-list" id="quest-list">
+              <p class="empty-state">Place your first quest piece to start a trail.</p>
+            </div>
+          </section>
+
+          <section class="card how-to-card">
+            <span class="eyebrow">HOW TO PLAY</span>
+            <p>Every placed cell stays in the world. Connect matching terrain to grow clusters and complete quests anchored to a marked block.</p>
+            <div class="terrain-legend">
+              <span><i class="legend-swatch grass"></i>Grass</span>
+              <span><i class="legend-swatch water"></i>Water</span>
+              <span><i class="legend-swatch dirt"></i>Dirt</span>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+    <script src="game.js" defer></script>
+  </body>
+</html>
