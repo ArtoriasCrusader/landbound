@@ -465,6 +465,14 @@ function drawPreview() {
       drawQuestMarker(screen, size);
     }
   }
+
+  const quest = state.currentPiece.quest;
+  const anchor = quest && placement.cells.find((cell) => (
+    cell.x === quest.anchorCell.x && cell.y === quest.anchorCell.y
+  ));
+  if (quest && anchor) {
+    drawQuestPreviewBubble(quest, worldToScreen(anchor.worldX, anchor.worldY), CELL_SIZE * state.camera.zoom);
+  }
 }
 
 function drawQuestMarker(screen, size, completed = false) {
@@ -503,7 +511,9 @@ function drawQuestAnchors() {
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.fillText('✦', screen.x + size - 7, screen.y + 6);
-    drawQuestProgressBubble(quest, screen, size);
+      if (quest.status !== 'completed') {
+        drawQuestProgressBubble(quest, screen, size);
+      }
   }
 }
 
@@ -552,6 +562,47 @@ function drawQuestProgressBubble(quest, anchorScreen, cellSize) {
   ctx.restore();
 }
 
+function drawQuestPreviewBubble(quest, anchorScreen, cellSize) {
+  const width = Math.max(154, Math.min(194, cellSize * 2.55));
+  const height = 58;
+  const gap = Math.max(8, cellSize * 0.14);
+  const canvasWidth = canvas.clientWidth;
+  const canvasHeight = canvas.clientHeight;
+  const aboveY = anchorScreen.y - height - gap;
+  const bubbleX = Math.max(8, Math.min(canvasWidth - width - 8, anchorScreen.x + cellSize / 2 - width / 2));
+  const bubbleY = aboveY > 8 ? aboveY : Math.min(canvasHeight - height - 8, anchorScreen.y + cellSize + gap);
+  const connectorY = aboveY > 8 ? anchorScreen.y : anchorScreen.y + cellSize;
+  const connectorEndY = aboveY > 8 ? bubbleY + height : bubbleY;
+  const symbol = quest.comparison === 'at_least' ? '≥' : '=';
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 247, 160, 0.82)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(anchorScreen.x + cellSize / 2, connectorY);
+  ctx.lineTo(bubbleX + width / 2, connectorEndY);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(17, 29, 21, 0.97)';
+  drawRoundedRect(bubbleX, bubbleY, width, height, 10);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 247, 160, 0.64)';
+  ctx.stroke();
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.font = '700 9px DM Sans, sans-serif';
+  ctx.fillStyle = '#fff7a0';
+  ctx.fillText(`${(quest.difficultyLabel || 'QUEST').toUpperCase()} QUEST`, bubbleX + 10, bubbleY + 13);
+  ctx.font = '700 14px Space Grotesk, sans-serif';
+  ctx.fillStyle = '#fff3a0';
+  ctx.fillText(`${TERRAIN_NAMES[quest.terrainType]} ${symbol} ${quest.requiredSize}`, bubbleX + 10, bubbleY + 31);
+  ctx.font = '600 10px DM Sans, sans-serif';
+  ctx.fillStyle = '#d7e7c5';
+  ctx.fillText(`Reward +${quest.rewardPieces} pieces`, bubbleX + 10, bubbleY + 47);
+  ctx.restore();
+}
+
 function drawRoundedRect(x, y, width, height, radius) {
   const r = Math.min(radius, width / 2, height / 2);
   ctx.beginPath();
@@ -596,13 +647,8 @@ function renderPiecePreview() {
   }
   ui.piecePreview.appendChild(grid);
 
-  if (state.currentPiece.quest) {
-    const quest = state.currentPiece.quest;
-    ui.handQuest.hidden = false;
-    ui.handQuest.innerHTML = `<span class="quest-badge">Quest attached</span><br><strong>${formatQuest(quest)}</strong><br>Place the ✦ anchor so its connected cluster grows.`;
-  } else {
-    ui.handQuest.hidden = true;
-  }
+  ui.handQuest.hidden = true;
+  ui.handQuest.innerHTML = '';
 }
 
 function formatQuest(quest) {
