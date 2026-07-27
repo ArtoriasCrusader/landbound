@@ -32,6 +32,33 @@ const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const INITIAL_PIECES = 50;
 const CELL_SIZE = 72;
 
+const QUEST_TYPE_AT_LEAST_CHANCE = 0.8;
+const QUEST_SPAWN_GAP = { min: 5, max: 7 };
+const QUEST_DIFFICULTIES = {
+  easy: {
+    label: 'Easy',
+    growth: [2, 3],
+    exactlyTarget: [5, 8],
+    atLeastReward: [5, 5],
+    exactlyReward: [6, 8],
+  },
+  normal: {
+    label: 'Normal',
+    growth: [4, 6],
+    exactlyTarget: [8, 12],
+    atLeastReward: [8, 10],
+    exactlyReward: [9, 12],
+  },
+  hard: {
+    label: 'Hard',
+    growth: [7, 8],
+    exactlyTarget: [12, 15],
+    atLeastReward: [12, 15],
+    exactlyReward: [12, 15],
+  },
+};
+const QUEST_DIFFICULTY_KEYS = Object.keys(QUEST_DIFFICULTIES);
+
 const canvas = document.querySelector('#game-canvas');
 const canvasWrap = document.querySelector('#canvas-wrap');
 const ctx = canvas.getContext('2d');
@@ -64,7 +91,7 @@ const state = {
   hover: null,
   pointer: { down: false, panning: false, x: 0, y: 0, startX: 0, startY: 0, cameraX: 0, cameraY: 0 },
   gameOver: false,
-  nextQuestAt: randomBetween(6, 8),
+  nextQuestAt: randomBetween(QUEST_SPAWN_GAP.min, QUEST_SPAWN_GAP.max),
 };
 
 function randomBetween(min, max) {
@@ -102,6 +129,47 @@ function seedWorld() {
   seed.forEach((cell) => state.board.set(key(cell.x, cell.y), cell));
 }
 
+function largestClusterSizeForTerrain(terrain) {
+  let largest = 0;
+  const visited = new Set();
+
+  for (const cell of state.board.values()) {
+    const cellKey = key(cell.x, cell.y);
+    if (cell.terrain !== terrain || visited.has(cellKey)) continue;
+    const cluster = clusterAt(cell.x, cell.y);
+    largest = Math.max(largest, cluster.length);
+    cluster.forEach((clusterCell) => visited.add(key(clusterCell.x, clusterCell.y)));
+  }
+
+  return largest;
+}
+
+function randomQuestDifficulty() {
+  // Equal weighting is a neutral playtest default; tune this table when difficulty data exists.
+  const difficultyKey = QUEST_DIFFICULTY_KEYS[Math.floor(Math.random() * QUEST_DIFFICULTY_KEYS.length)];
+  return { key: difficultyKey, ...QUEST_DIFFICULTIES[difficultyKey] };
+}
+
+function createQuest(anchor) {
+  const comparison = Math.random() < QUEST_TYPE_AT_LEAST_CHANCE ? 'at_least' : 'exactly';
+  const difficulty = randomQuestDifficulty();
+  const range = comparison === 'at_least' ? difficulty.growth : difficulty.exactlyTarget;
+  const baseline = comparison === 'at_least' ? largestClusterSizeForTerrain(anchor.terrain) : 0;
+  const requiredSize = comparison === 'at_least'
+    ? baseline + randomBetween(range[0], range[1])
+    : randomBetween(range[0], range[1]);
+  const rewardRange = comparison === 'at_least' ? difficulty.atLeastReward : difficulty.exactlyReward;
+
+  return {
+    difficulty: difficulty.key,
+    difficultyLabel: difficulty.label,
+    comparison,
+    requiredSize,
+    rewardPieces: randomBetween(rewardRange[0], rewardRange[1]),
+    baselineClusterSize: baseline,
+  };
+}
+
 function makePiece() {
   const template = SHAPES[Math.floor(Math.random() * SHAPES.length)];
   const cells = template.cells.map((cell) => ({ ...cell, terrain: randomTerrain() }));
@@ -110,20 +178,17 @@ function makePiece() {
 
   if (state.piecesSpawned >= state.nextQuestAt) {
     const anchor = cells[Math.floor(Math.random() * cells.length)];
-    const comparison = Math.random() < 0.68 ? 'at_least' : 'exactly';
-    const requiredSize = comparison === 'at_least' ? randomBetween(5, 10) : randomBetween(4, 8);
+    const questTuning = createQuest(anchor);
     piece.quest = {
       id: `quest-${state.piecesSpawned}`,
       terrainType: anchor.terrain,
-      comparison,
-      requiredSize,
-      rewardPieces: 5,
+      ...questTuning,
       status: 'waiting',
       anchorCell: { x: anchor.x, y: anchor.y },
       anchorWorld: null,
       clusterSize: 0,
     };
-    state.nextQuestAt = state.piecesSpawned + randomBetween(5, 7) + 1;
+    state.nextQuestAt = state.piecesSpawned + randomBetween(QUEST_SPAWN_GAP.min, QUEST_SPAWN_GAP.max);
   }
   return piece;
 }
@@ -182,7 +247,7 @@ function seedAndStart() {
   state.camera = { x: 0, y: 0, zoom: 1 };
   state.hover = null;
   state.gameOver = false;
-  state.nextQuestAt = randomBetween(6, 8);
+  state.nextQuestAt = randomBetween(QUEST_SPAWN_GAP.min, QUEST_SPAWN_GAP.max);
   ui.gameOver.hidden = true;
   seedWorld();
   spawnNextPiece();
@@ -542,7 +607,7 @@ function renderPiecePreview() {
 
 function formatQuest(quest) {
   const comparator = quest.comparison === 'at_least' ? 'at least' : 'exactly';
-  return `${TERRAIN_NAMES[quest.terrainType]} · ${comparator} ${quest.requiredSize}`;
+  return `${quest.difficultyLabel} · ${TERRAIN_NAMES[quest.terrainType]} · ${comparator} ${quest.requiredSize}`;
 }
 
 function renderQuestList() {
@@ -553,7 +618,8 @@ function renderQuestList() {
   }
   ui.questList.innerHTML = state.quests.slice(0, 5).map((quest) => {
     const stateLabel = quest.status === 'waiting' ? `${quest.clusterSize}/${quest.requiredSize}` : quest.status;
-    return `<div class="quest-item"><span class="terrain-dot ${quest.terrainType}"></span><div><strong>${formatQuest(quest)}</strong><small>${quest.comparison === 'exactly' && quest.status === 'failed' ? 'Cluster overshot the target.' : `Anchor cluster: ${quest.clusterSize} blocks`}</small></div><span class="quest-state ${quest.status}">${stateLabel}</span></div>`;
+    const rewardLabel = `Reward: +${quest.rewardPieces} pieces`;
+    return `<div class="quest-item"><span class="terrain-dot ${quest.terrainType}"></span><div><strong>${formatQuest(quest)}</strong><small>${quest.comparison === 'exactly' && quest.status === 'failed' ? 'Cluster overshot the target.' : `Anchor cluster: ${quest.clusterSize} blocks`} · ${rewardLabel}</small></div><span class="quest-state ${quest.status}">${stateLabel}</span></div>`;
   }).join('');
 }
 
