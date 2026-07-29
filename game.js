@@ -134,15 +134,25 @@ function largestClusterSizeForTerrain(terrain) {
   return largest;
 }
 
-function randomQuestDifficulty() {
-  // Equal weighting is a neutral playtest default; tune this table when difficulty data exists.
-  const difficultyKey = QUEST_DIFFICULTY_KEYS[Math.floor(Math.random() * QUEST_DIFFICULTY_KEYS.length)];
+function getMissingQuestDifficulties() {
+  const waitingDifficulties = new Set(
+    state.quests
+      .filter((quest) => quest.status === 'waiting')
+      .map((quest) => quest.difficulty),
+  );
+  return QUEST_DIFFICULTY_KEYS.filter((difficultyKey) => !waitingDifficulties.has(difficultyKey));
+}
+
+function randomMissingQuestDifficulty() {
+  const missingDifficulties = getMissingQuestDifficulties();
+  if (!missingDifficulties.length) return null;
+  // When multiple difficulty slots are missing, keep the choice unpredictable.
+  const difficultyKey = missingDifficulties[Math.floor(Math.random() * missingDifficulties.length)];
   return { key: difficultyKey, ...QUEST_DIFFICULTIES[difficultyKey] };
 }
 
-function createQuest(anchor) {
+function createQuest(anchor, difficulty) {
   const comparison = Math.random() < QUEST_TYPE_AT_LEAST_CHANCE ? 'at_least' : 'exactly';
-  const difficulty = randomQuestDifficulty();
   const range = comparison === 'at_least' ? difficulty.growth : difficulty.exactlyTarget;
   const baseline = comparison === 'at_least' ? largestClusterSizeForTerrain(anchor.terrain) : 0;
   const requiredSize = comparison === 'at_least'
@@ -167,17 +177,20 @@ function makePiece() {
   state.piecesSpawned += 1;
 
   if (state.piecesSpawned >= state.nextQuestAt) {
-    const anchor = cells[Math.floor(Math.random() * cells.length)];
-    const questTuning = createQuest(anchor);
-    piece.quest = {
-      id: `quest-${state.piecesSpawned}`,
-      terrainType: anchor.terrain,
-      ...questTuning,
-      status: 'waiting',
-      anchorCell: { x: anchor.x, y: anchor.y },
-      anchorWorld: null,
-      clusterSize: 0,
-    };
+    const difficulty = randomMissingQuestDifficulty();
+    if (difficulty) {
+      const anchor = cells[Math.floor(Math.random() * cells.length)];
+      const questTuning = createQuest(anchor, difficulty);
+      piece.quest = {
+        id: `quest-${state.piecesSpawned}`,
+        terrainType: anchor.terrain,
+        ...questTuning,
+        status: 'waiting',
+        anchorCell: { x: anchor.x, y: anchor.y },
+        anchorWorld: null,
+        clusterSize: 0,
+      };
+    }
     state.nextQuestAt = state.piecesSpawned + randomBetween(QUEST_SPAWN_GAP.min, QUEST_SPAWN_GAP.max);
   }
   return piece;

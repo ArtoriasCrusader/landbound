@@ -211,6 +211,9 @@ Prototype có thể dùng rule đơn giản:
 - Complete hoặc fail quest không tự động spawn quest thay thế ngay lập tức. Quest tiếp theo chỉ xuất hiện theo chỉ số tần suất spawn.
 - Terrain type và loại điều kiện (`at_least` hoặc `exactly`) được random khi tạo quest.
 - Tỷ lệ condition hiện tại là **70% `at_least` và 30% `exactly`**.
+- Trên board chỉ có tối đa **3 quest đang `waiting`**, gồm tối đa một Easy, một Normal và một Hard.
+- Nếu đủ cả ba difficulty thì lần spawn theo lịch không tạo quest mới; nếu thiếu slot nào thì lần spawn kế tiếp chỉ chọn trong các difficulty đang thiếu.
+- Quest `completed` hoặc `failed` không chiếm slot; slot trống không được lấp ngay lập tức.
 - Required size được quyết định bởi difficulty: `at_least` cộng growth vào cluster baseline, còn `exactly` dùng target cố định theo tier.
 
 Mức độ khó được phân hóa rõ theo lượng block cần thêm hoặc target cố định:
@@ -393,6 +396,8 @@ Codex cần làm prototype có các tính năng sau:
 - Quest `at_least` có trạng thái `waiting` hoặc `completed`.
 - Quest `exactly` có trạng thái `waiting`, `completed` hoặc `failed`.
 - Quest được spawn theo chỉ số tần suất, khoảng mỗi 5–7 piece.
+- Có tối đa 3 quest `waiting` trên board: một Easy, một Normal và một Hard.
+- Khi đủ ba slot, quest không spawn thêm; khi thiếu slot, chỉ spawn difficulty đang thiếu ở lần roll kế tiếp.
 - Quest đang `waiting` hiển thị progress popup trên anchor block, ví dụ `≥ 9 / 10`.
 - Quest đã `completed` không còn hiển thị progress popup trên anchor block; badge/ký hiệu `Q` và viền anchor vẫn được giữ lại để nhận diện.
 - Khi quest hoàn thành:
