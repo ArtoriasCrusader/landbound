@@ -32,28 +32,28 @@ const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const INITIAL_PIECES = 50;
 const CELL_SIZE = 72;
 
-const QUEST_TYPE_AT_LEAST_CHANCE = 0.8;
+const QUEST_TYPE_AT_LEAST_CHANCE = 0.7;
 const QUEST_SPAWN_GAP = { min: 5, max: 7 };
 const QUEST_DIFFICULTIES = {
   easy: {
     label: 'Easy',
-    growth: [2, 3],
+    growth: [2, 5],
     exactlyTarget: [5, 8],
-    atLeastReward: [5, 5],
+    atLeastReward: [5, 7],
     exactlyReward: [6, 8],
   },
   normal: {
     label: 'Normal',
-    growth: [4, 6],
-    exactlyTarget: [8, 12],
-    atLeastReward: [8, 10],
-    exactlyReward: [9, 12],
+    growth: [7, 12],
+    exactlyTarget: [9, 14],
+    atLeastReward: [7, 10],
+    exactlyReward: [8, 12],
   },
   hard: {
     label: 'Hard',
-    growth: [7, 8],
-    exactlyTarget: [12, 15],
-    atLeastReward: [12, 15],
+    growth: [14, 20],
+    exactlyTarget: [15, 20],
+    atLeastReward: [10, 15],
     exactlyReward: [12, 15],
   },
 };
@@ -117,16 +117,6 @@ function loadImages() {
     image.onerror = reject;
     image.src = source;
   })));
-}
-
-function seedWorld() {
-  const seed = [
-    { x: 0, y: 0, terrain: TERRAIN.GRASS },
-    { x: 1, y: 0, terrain: TERRAIN.GRASS },
-    { x: 0, y: 1, terrain: TERRAIN.DIRT },
-    { x: 1, y: 1, terrain: TERRAIN.WATER },
-  ];
-  seed.forEach((cell) => state.board.set(key(cell.x, cell.y), cell));
 }
 
 function largestClusterSizeForTerrain(terrain) {
@@ -249,7 +239,6 @@ function seedAndStart() {
   state.gameOver = false;
   state.nextQuestAt = randomBetween(QUEST_SPAWN_GAP.min, QUEST_SPAWN_GAP.max);
   ui.gameOver.hidden = true;
-  seedWorld();
   spawnNextPiece();
 }
 

@@ -14,7 +14,7 @@ Mỗi block trong mảnh ghép thuộc một trong ba loại địa hình:
 - Water / Nước
 - Dirt / Đất
 
-Người chơi chọn một mảnh ghép và đặt nó lên thế giới grid vô hạn. Mảnh không được chồng lên block đã có và phải nối cạnh với phần thế giới đã xây dựng. Sau khi đặt, các block cùng loại nằm cạnh nhau theo 4 hướng ngang/dọc sẽ được tính là cùng một cụm địa hình. Các block đã đặt tồn tại vĩnh viễn cho tới khi run kết thúc.
+Người chơi chọn một mảnh ghép và đặt nó lên thế giới grid vô hạn. Bàn chơi bắt đầu trống, nên piece đầu tiên có thể đặt tự do; từ piece thứ hai trở đi, mảnh không được chồng lên block đã có và phải nối cạnh với phần thế giới đã xây dựng. Sau khi đặt, các block cùng loại nằm cạnh nhau theo 4 hướng ngang/dọc sẽ được tính là cùng một cụm địa hình. Các block đã đặt tồn tại vĩnh viễn cho tới khi run kết thúc.
 
 Một số piece sẽ có quest gắn vào một block cụ thể bên trong piece, gọi là **quest anchor block**. Sau khi piece được đặt xuống board, quest sẽ theo anchor block đó. Chỉ cluster cùng terrain được nối với anchor block mới được tính cho quest.
 
@@ -63,8 +63,9 @@ Prototype dùng một thế giới **square grid vô hạn**.
 
 - Không có giới hạn kích thước như 12x12, 16x16 hay 30x30.
 - Board lưu các cell đã đặt bằng tọa độ integer; chỉ render vùng đang nằm trong camera/viewport.
-- Có thể bắt đầu với một block hoặc một cụm nhỏ ở gần origin giữa màn hình.
-- Người chơi chỉ được đặt mảnh mới nếu mảnh đó chạm cạnh với ít nhất một block đã có trên thế giới.
+- Bàn chơi bắt đầu trống, không có starting piece hoặc board seed.
+- Piece đầu tiên có thể đặt ở bất kỳ vị trí nào trong world.
+- Từ piece thứ hai trở đi, người chơi chỉ được đặt mảnh mới nếu mảnh đó chạm cạnh với ít nhất một block đã có trên thế giới.
 - Không cho đặt rời rạc ở xa phần thế giới hiện tại.
 - Camera hỗ trợ pan và zoom để người chơi quan sát phần thế giới đã mở rộng.
 - Mọi block đã đặt tiếp tục tồn tại và không bị xóa trong suốt run.
@@ -209,14 +210,21 @@ Prototype có thể dùng rule đơn giản:
 - Quest được gắn vào một terrain block cụ thể trên piece và block đó trở thành anchor sau khi đặt.
 - Complete hoặc fail quest không tự động spawn quest thay thế ngay lập tức. Quest tiếp theo chỉ xuất hiện theo chỉ số tần suất spawn.
 - Terrain type và loại điều kiện (`at_least` hoặc `exactly`) được random khi tạo quest.
-- Required size tăng dần theo tiến trình game.
+- Tỷ lệ condition hiện tại là **70% `at_least` và 30% `exactly`**.
+- Required size được quyết định bởi difficulty: `at_least` cộng growth vào cluster baseline, còn `exactly` dùng target cố định theo tier.
 
-Ví dụ progression:
+Mức độ khó được phân hóa rõ theo lượng block cần thêm hoặc target cố định:
 
 ```
-Quest 1-3: yêu cầu 6-8 block
-Quest 4-6: yêu cầu 9-12 block
-Quest 7+: yêu cầu 13-18 block
+At least growth:
+Easy:   +2–5 block
+Normal: +7–12 block
+Hard:   +14–20 block
+
+Exactly target:
+Easy:   5–8 block
+Normal: 9–14 block
+Hard:   15–20 block
 ```
 
 ## 10. Piece Economy
@@ -228,7 +236,11 @@ Gợi ý ban đầu:
 - Start với **50 pieces**
 - Mỗi lần đặt piece: mất 1 piece trong kho
 - Sau khi đặt piece thành công: nhận/spawn piece tiếp theo nếu kho còn piece
-- Hoàn thành quest: nhận thêm **5 pieces** vào kho
+- Hoàn thành quest: nhận thêm pieces theo difficulty và loại quest:
+    - Easy `at_least`: +5–7 pieces; `exactly`: +6–8 pieces
+    - Normal `at_least`: +7–10 pieces; `exactly`: +8–12 pieces
+    - Hard `at_least`: +10–15 pieces; `exactly`: +12–15 pieces
+- Mọi reward quest đều nằm trong giới hạn **5–15 pieces**.
 - Nếu piece count về 0: game over
 
 Có thể hiển thị:
@@ -363,7 +375,8 @@ Codex cần làm prototype có các tính năng sau:
 ### Placement Rules
 
 - Không cho đặt chồng lên block đã có.
-- Piece phải chạm cạnh với ít nhất một block đã có.
+- Piece đầu tiên được đặt tự do khi board còn trống.
+- Từ piece thứ hai trở đi, piece phải chạm cạnh với ít nhất một block đã có.
 - Không có giới hạn biên của board.
 
 ### Cluster Detection
