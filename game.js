@@ -37,24 +37,24 @@ const QUEST_SPAWN_GAP = { min: 5, max: 7 };
 const QUEST_DIFFICULTIES = {
   easy: {
     label: 'Easy',
-    growth: [2, 5],
-    exactlyTarget: [5, 8],
-    atLeastReward: [5, 7],
-    exactlyReward: [6, 8],
+    growth: [8, 12],
+    exactlyTarget: [8, 12],
+    atLeastReward: [5, 6],
+    exactlyReward: [5, 7],
   },
   normal: {
     label: 'Normal',
-    growth: [7, 12],
-    exactlyTarget: [9, 14],
-    atLeastReward: [7, 10],
-    exactlyReward: [8, 12],
+    growth: [18, 22],
+    exactlyTarget: [18, 22],
+    atLeastReward: [6, 8],
+    exactlyReward: [7, 9],
   },
   hard: {
     label: 'Hard',
-    growth: [14, 20],
-    exactlyTarget: [15, 20],
-    atLeastReward: [10, 15],
-    exactlyReward: [12, 15],
+    growth: [28, 32],
+    exactlyTarget: [28, 32],
+    atLeastReward: [8, 10],
+    exactlyReward: [9, 10],
   },
 };
 const QUEST_DIFFICULTY_KEYS = Object.keys(QUEST_DIFFICULTIES);

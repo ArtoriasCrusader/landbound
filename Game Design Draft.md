@@ -217,14 +217,14 @@ Mức độ khó được phân hóa rõ theo lượng block cần thêm hoặc 
 
 ```
 At least growth:
-Easy:   +2–5 block
-Normal: +7–12 block
-Hard:   +14–20 block
+Easy:   +8–12 block (khoảng 10)
+Normal: +18–22 block (khoảng 20)
+Hard:   +28–32 block (khoảng 30)
 
 Exactly target:
-Easy:   5–8 block
-Normal: 9–14 block
-Hard:   15–20 block
+Easy:   8–12 block (khoảng 10)
+Normal: 18–22 block (khoảng 20)
+Hard:   28–32 block (khoảng 30)
 ```
 
 ## 10. Piece Economy
@@ -237,10 +237,10 @@ Gợi ý ban đầu:
 - Mỗi lần đặt piece: mất 1 piece trong kho
 - Sau khi đặt piece thành công: nhận/spawn piece tiếp theo nếu kho còn piece
 - Hoàn thành quest: nhận thêm pieces theo difficulty và loại quest:
-    - Easy `at_least`: +5–7 pieces; `exactly`: +6–8 pieces
-    - Normal `at_least`: +7–10 pieces; `exactly`: +8–12 pieces
-    - Hard `at_least`: +10–15 pieces; `exactly`: +12–15 pieces
-- Mọi reward quest đều nằm trong giới hạn **5–15 pieces**.
+    - Easy `at_least`: +5–6 pieces; `exactly`: +5–7 pieces
+    - Normal `at_least`: +6–8 pieces; `exactly`: +7–9 pieces
+    - Hard `at_least`: +8–10 pieces; `exactly`: +9–10 pieces
+- Mọi reward quest đều nằm trong giới hạn **5–10 pieces**.
 - Nếu piece count về 0: game over
 
 Có thể hiển thị:
